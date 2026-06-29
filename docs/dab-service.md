@@ -37,18 +37,122 @@ builder.Services.AddSingleton<DataApiBuilderService>();
 builder.Services.AddHostedService<DataApiBuilderHostedService>();
 ```
 
-### Start DAB from a hosted service
+### Start with a local tool manifest
 
 ```csharp
-var status = await dab.StartAsync(new DataApiBuilderOptions
+await dab.StartAsync(new DataApiBuilderOptions
 {
     ConfigPath = "dab-config.json",
-    UseDotNetToolRun = true,
+    UseDotNetToolRun = true
+}, cancellationToken);
+```
+
+### Start with a global DAB install
+
+```csharp
+await dab.StartAsync(new DataApiBuilderOptions
+{
+    ConfigPath = "dab-config.json",
+    DabExecutablePath = "dab"
+}, cancellationToken);
+```
+
+### Pass a connection string to DAB
+
+```csharp
+var options = new DataApiBuilderOptions
+{
+    ConfigPath = "dab-config.json",
     EnvironmentVariables = new(StringComparer.OrdinalIgnoreCase)
     {
         ["MSSQL_CONNECTION_STRING"] = connectionString
     }
+};
+```
+
+### Use a fixed DAB port
+
+```csharp
+var options = new DataApiBuilderOptions
+{
+    ConfigPath = "dab-config.json",
+    Port = 5000
+};
+```
+
+### Let the service choose an available port
+
+```csharp
+var status = await dab.StartAsync(new DataApiBuilderOptions
+{
+    ConfigPath = "dab-config.json"
 }, cancellationToken);
+
+var dabBaseUrl = status.BaseUrl;
+```
+
+### Read current status
+
+```csharp
+var status = dab.GetStatus();
+
+if (status.Running)
+{
+    logger.LogInformation("DAB is running at {BaseUrl}", status.BaseUrl);
+}
+```
+
+### Surface startup failures
+
+```csharp
+var status = await dab.StartAsync(options, cancellationToken);
+
+if (status.State == DataApiBuilderState.Failed)
+{
+    logger.LogWarning("DAB failed: {Code} {Message}", status.ErrorCode, status.ErrorMessage);
+}
+```
+
+### Listen for process output
+
+```csharp
+dab.OutputReceived += (_, e) =>
+{
+    logger.LogInformation("DAB {Stream}: {Message}", e.Stream, e.Message);
+};
+```
+
+### Cancel startup from an event
+
+```csharp
+dab.Starting += (_, e) =>
+{
+    if (!File.Exists(e.Options.ConfigPath))
+    {
+        e.Cancel = true;
+        e.CancelReason = "DAB config is missing.";
+    }
+};
+```
+
+### Check for same-origin route conflicts
+
+```csharp
+var appRoutes = new[] { "/api/orders", "/healthz" };
+
+if (DataApiBuilderService.HasReservedPathConflict(appRoutes))
+{
+    throw new InvalidOperationException("An app route overlaps a DAB proxy path.");
+}
+```
+
+### Stop DAB during shutdown
+
+```csharp
+public Task StopAsync(CancellationToken cancellationToken)
+{
+    return dab.StopAsync(cancellationToken);
+}
 ```
 
 ## Constructors
