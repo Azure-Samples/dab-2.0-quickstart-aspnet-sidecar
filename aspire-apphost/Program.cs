@@ -9,13 +9,13 @@ var webProject = Path.Combine(webRoot, "WebApp.csproj");
 
 var options = new
 {
-    SqlServer = "qs7-sql-server",
-    SqlVolume = "qs7-sql-data",
+    SqlServer = "sql-server",
+    SqlVolume = "sql-data",
     SqlDatabase = "TodoDb",
-    SqlProject = "qs7-sql-project",
-    SqlCmdr = "qs7-sql-cmdr",
+    SqlProject = "sql-project",
+    SqlCmdr = "sql-cmdr",
     SqlCmdrImage = "latest",
-    WebApp = "qs7-web-app",
+    WebApp = "web-app",
     WebAppPort = 5173,
     WebAppTargetPort = 5174,
 };

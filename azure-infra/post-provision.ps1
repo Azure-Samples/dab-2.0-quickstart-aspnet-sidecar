@@ -54,7 +54,7 @@ Write-Host "Web updated" -ForegroundColor Green
 $repoRoot = (Resolve-Path (Join-Path (Get-Location) "..")).Path
 $mcpDir = Join-Path $repoRoot ".github"
 $mcpFile = Join-Path $mcpDir "mcp.json"
-$mcpServerName = "azure-sql-mcp-qs7"
+$mcpServerName = "azure-sql-mcp"
 $mcpUrl = "$webUrl/mcp"
 
 if (-not (Test-Path $mcpDir)) {
